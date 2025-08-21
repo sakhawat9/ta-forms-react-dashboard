@@ -1,0 +1,43 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+/* #wpcontent,
+.auto-fold #wpcontent {
+  padding-left: 0 !important;
+} */
+.child\:font-semibold > * {
+  @apply font-semibold;
+}
+.child\:py-2 > * {
+  @apply py-2;
+}
+.child\:px-5 > * {
+  @apply px-5;
+}
+.child\:px-4>* {
+  @apply px-4;
+}
+.child\:ring-0>* {
+  @apply ring-0;
+}
+.child\:items-center>* {
+  @apply items-center;
+}
+.child\:h-8>* {
+  @apply h-8;
+}
+.child\:flex>* {
+  @apply flex;
+}
+.opacity-30 {
+  opacity: 0.3;
+}
+.child\:cursor-pointer>* {
+  @apply cursor-pointer;
+}
+.child\:py-2\.5>* {
+  @apply py-2.5;
+}
+.bg-opacity-50 {
+  opacity: 0.5!important;
+}
