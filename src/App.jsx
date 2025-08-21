@@ -160,7 +160,7 @@ function App() {
             {/* All Offers Delete */}
             {selectedOffers.length > 0 && (
               <button
-                // onClick={() => setShowModal(true)}
+                onClick={() => setShowModal(selectedOffers)}
                 className="relative group px-6 h-10 flex items-center gap-2 border rounded transition focus:ring-0 active:grayscale-100 active:opacity-95 overflow-hidden bg-transparent text-red-600 border-red-600 hover:bg-red-600 hover:text-white text-base"
               >
                 <div className="bg-transparent text-red-600 border-red-600 hover:bg-red-600 hover:text-white duration-300 absolute z-0 h-full w-full scale-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition"></div>
@@ -269,6 +269,7 @@ function App() {
           setShowModal={setShowModal}
           shoModal={shoModal}
           setNotice={setNotice}
+          setSelectedOffers={setSelectedOffers}
         />
       )}
       {notice && (

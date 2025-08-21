@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
 import OfferDetail from "./OfferDetails";
 
@@ -15,15 +15,75 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
     sameElse: "MMM D, YYYY [at] h:mm A",
   });
 
-  const siteUrl = window.location.origin; // Or set manually
+  const siteUrl = window.location.origin;
   const adminUrl = `${siteUrl}/wp-admin/admin.php`;
   const resendUrl = `${adminUrl}?page=ta-forms&action=resend_verification&offer_id=${offer.id}`;
+
+  const [time, setTime] = useState(0);
+  const [resendActive, setResendActive] = useState(true);  
+
+  // Load saved timer from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(`resendTimer_${offer.id}`);
+    if (saved) {
+      const { expireAt } = JSON.parse(saved);
+      const now = Math.floor(Date.now() / 1000);
+
+      if (expireAt > now) {
+        setResendActive(false);
+        setTime(expireAt - now);
+      }
+    }
+  }, [offer.id]);
+
+  const handleResend = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    fetch(resendUrl, { method: "POST" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Resend failed");
+        return res.text();
+      })
+      .then(() => {
+        setResendActive(false);
+        setTime(300); // 5 minutes
+
+        // Save expiry time in localStorage
+        const expireAt = Math.floor(Date.now() / 1000) + 300;
+        localStorage.setItem(
+          `resendTimer_${offer.id}`,
+          JSON.stringify({ expireAt })
+        );
+      })
+      .catch((err) => {
+        console.log("Error:", err);
+      });
+  };
+
+  // Countdown effect
+  useEffect(() => {
+    let timer;
+    if (!resendActive && time > 0) {
+      timer = setInterval(() => {
+        setTime((prev) => {
+          if (prev === 1) {
+            setResendActive(true);
+            localStorage.removeItem(`resendTimer_${offer.id}`);
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendActive, time, offer.id]);
 
   return (
     <>
       <div
         className="flex flex-col w-full h-full border border-slate-100 border-t-0 divide-y divide-slate-100 transition-all overflow-hidden w-[800px] sm:w-full"
-        locked="false"
         key={index}
       >
         <div
@@ -56,23 +116,17 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
                 <span className="text-yellow-600 text-xs">
                   {" "}
                   Pending Verification -{" "}
-                  <a
-                    href={`${resendUrl}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      fetch(resendUrl, { method: "POST" })
-                        .then((res) => res.json())
-                        .then((data) => {
-                          console.log(data);
-                        })
-                        .catch((err) => {
-                          console.log(err);
-                        });
-                    }}
-                  >
-                    Resend
-                  </a>
+                  {resendActive ? (
+                    <a href={resendUrl} onClick={handleResend}>
+                      Resend
+                    </a>
+                  ) : (
+                    <>
+                      You can resend again within -{" "}
+                      {`${Math.floor(time / 60)}`.padStart(2, "0")}:
+                      {`${time % 60}`.padStart(2, "0")}
+                    </>
+                  )}
                 </span>
               ))}
           </div>

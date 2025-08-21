@@ -1,28 +1,35 @@
 import React from "react";
 
-const DeleteModal = ({ setOffers, setShowModal, shoModal, setNotice }) => {
+const DeleteModal = ({
+  setOffers,
+  setShowModal,
+  shoModal,
+  setNotice,
+  setSelectedOffers,
+}) => {
   const { restUrl, nonce } = window.taForms || {};
 
   const handleDelete = async () => {
-    console.log('id', shoModal);
-    
     try {
-      const res = await fetch(`${restUrl}/offers/${shoModal}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "X-WP-Nonce": nonce, // send nonce
-        },
-      });
+      const ids = Array.isArray(shoModal) ? shoModal : [shoModal];
+      await Promise.all(
+        ids.map(async (id) => {
+          const res = await fetch(`${restUrl}/offers/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              "X-WP-Nonce": nonce,
+            },
+          });
+          if (!res.ok) throw new Error(`Failed to delete offer ${id}`);
+        })
+      );
 
-      if (!res.ok) throw new Error("Failed to delete");
-
-      // const data = await res.json();
-      setOffers((prev) => prev.filter((offer) => offer.id !== shoModal));
+      setOffers((prev) => prev.filter((offer) => !ids.includes(offer.id)));
       setShowModal(null);
-      setNotice("Offer deleted successfully!");
+      setSelectedOffers([]);
+      setNotice("Offer(s) deleted successfully!");
       setTimeout(() => setNotice(""), 3000);
-      
     } catch (err) {
       console.error(err);
       setNotice("Delete failed!");
@@ -72,7 +79,9 @@ const DeleteModal = ({ setOffers, setShowModal, shoModal, setNotice }) => {
               </div>
             </button>
             <button
-              onClick={() => handleDelete()}
+              onClick={() => {
+                handleDelete();
+              }}
               className="relative group px-6 h-10 flex items-center gap-2 border rounded transition focus:ring-0 active:grayscale-100 active:opacity-95 overflow-hidden bg-red-600 text-white border-red-600  hover:border-red-500 cursor-pointer"
             >
               <div className="bg-white opacity-0 group-hover:opacity-10 duration-200 group-hover:scale-110 absolute z-0 h-full w-full scale-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition"></div>
