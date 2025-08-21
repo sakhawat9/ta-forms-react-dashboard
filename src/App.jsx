@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import Offer from "./components/Offer";
+import DeleteModal from "./components/DeleteModal";
 
 const columns = [
   { label: "ID", key: "id" },
@@ -41,7 +42,10 @@ const columns = [
 function App() {
   const [offers, setOffers] = useState([]);
   const [shoModal, setShowModal] = useState(null);
-  const { restUrl, nonce } = window.taForms || {};
+  const [notice, setNotice] = useState("");
+
+    const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
 
   useEffect(() => {
     fetch("http://forms.local/wp-json/ta-forms/v1/offers")
@@ -49,28 +53,6 @@ function App() {
       .then((data) => setOffers(data))
       .catch((err) => console.error(err));
   }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      const res = await fetch(`${restUrl}/offers/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "X-WP-Nonce": nonce, // send nonce
-        },
-      });
-
-      if (!res.ok) throw new Error("Failed to delete");
-
-      const data = await res.json();
-      setOffers((prev) => prev.filter((offer) => offer.id !== id));
-      setShowModal(null);
-
-      console.log("Deleted:", data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const getValueByPath = (obj, path) => {
     return path.split(".").reduce((acc, part) => acc?.[part], obj) ?? "";
@@ -106,6 +88,17 @@ function App() {
     link.click();
     document.body.removeChild(link);
   };
+
+
+    // ✅ Total pages
+  const totalPages =
+    perPage === "all" ? 1 : Math.ceil(offers.length / perPage);
+
+  // ✅ Paginated offers
+  const paginatedOffers =
+    perPage === "all"
+      ? offers
+      : offers.slice((currentPage - 1) * perPage, currentPage * perPage);
 
   return (
     <div className="w-full p-3 sm:p-6 h-full !pl-0">
@@ -163,117 +156,84 @@ function App() {
               </div>
               <div className="w-[150px] min-w-[150px]">Action</div>
             </div>
-            {offers.map((offer, index) => (
+            {paginatedOffers.map((offer, index) => (
               <Offer offer={offer} key={index} setShowModal={setShowModal} />
             ))}
           </div>
 
           <div className="flex items-center justify-between flex-col-reverse sm:flex-row gap-3">
-            <div className="flex items-center justify-end gap-1 relative text-slate-600">
-              Showing 0 / 0 <span className="px-2 text-slate-300">|</span> Per
-              page
-              <div
-                className="outline-none cursor-pointer font-medium text-indigo-500 lowercase"
-                tabIndex="1"
+            <div className="flex items-center gap-2 text-slate-600">
+              Showing{" "}
+              <b>
+                {perPage === "all"
+                  ? offers.length
+                  : paginatedOffers.length + (currentPage - 1) * perPage}
+              </b>{" "}
+              / {offers.length}
+              <span className="px-2 text-slate-300">|</span>
+              Per page:
+              <select
+                className="ml-2 border rounded p-1"
+                value={perPage}
+                onChange={(e) => {
+                  const value =
+                    e.target.value === "all" ? "all" : Number(e.target.value);
+                  setPerPage(value);
+                  setCurrentPage(1); // reset to page 1 when perPage changes
+                }}
               >
-                0
-              </div>
+                <option value={5}>5</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value="all">All</option>
+              </select>
             </div>
-            <div className="flex items-center justify-start child:cursor-pointer child:px-4 child:h-8 child:flex child:ring-0 child:transition child:items-center rounded overflow-hidden child-hover:opacity-90 child-focus:outline-none">
-              <a
-                href="#"
-                className="text-gray-700 bg-gray-100 border-r border-slate-50 opacity-30 pointer-events-none"
+
+            {/* Prev/Next */}
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                className={`px-3 py-1 rounded border ${
+                  currentPage === 1
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:bg-gray-200 bg-gray-100 border-indigo-600 text-indigo-600"
+                }`}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 fill-current"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M11 17l-5-5m0 0l5-5m-5 5h12"
-                  ></path>
-                </svg>
-              </a>
-              <a
-                href="#"
-                className="text-gray-700 bg-gray-100 opacity-30 pointer-events-none"
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 fill-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" > <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" ></path> </svg>
+              </button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                className={`px-3 py-1 rounded border ${
+                  currentPage === totalPages || totalPages === 1
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:bg-gray-200 bg-gray-100 border-indigo-600 text-indigo-600"
+                }`}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 fill-current"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  ></path>
-                </svg>
-              </a>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 fill-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" > <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" ></path> </svg>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {shoModal && (
-        <div className="scf-modal fixed top-0 left-0 w-full h-full flex items-center justify-center z-[9999]">
-          <div
-            className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-0"
-            onClick={() => setShowModal(null)}
-          ></div>
-          <div className="z-[9999] w-full max-w-lg bg-white p-4 lg:p-8 rounded-lg flex flex-col gap-4 relative text-center">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 cursor-pointer"
-              onClick={() => setShowModal(null)}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-            </button>
-            <h3 className="font-semibold text-lg m-0">Delete Lead</h3>
-            <p className="text-[14px] text-gray-500 m-0">
-              Are you sure you want to delete this lead?
-            </p>
-            <div className="flex items-center justify-center child:text-center gap-3 mt-4 child:px-6 child:font-medium child:py-2.5 child:rounded child-hover:opacity-95 child:transition">
-              <button className="relative group px-6 h-10 flex items-center gap-2 border rounded transition focus:ring-0 active:grayscale-100 active:opacity-95 overflow-hidden bg-transparent text-gray-600 border-gray-400 hover:bg-gray-600 hover:text-white hover:border-gray-600 cursor-pointer">
-                <div className="bg-transparent text-gray-600 border-gray-400 hover:bg-gray-600 hover:text-white hover:border-gray-600 duration-300 absolute z-0 h-full w-full scale-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition"></div>
-                <div
-                  className="z-10 flex items-center justify-center gap-2 whitespace-nowrap"
-                  onClick={() => setShowModal(null)}
-                >
-                  Cancel
-                </div>
-              </button>
-              <button
-                onClick={() => handleDelete(shoModal)}
-                className="relative group px-6 h-10 flex items-center gap-2 border rounded transition focus:ring-0 active:grayscale-100 active:opacity-95 overflow-hidden bg-red-600 text-white border-red-600  hover:border-red-500 cursor-pointer"
-              >
-                <div className="bg-white opacity-0 group-hover:opacity-10 duration-200 group-hover:scale-110 absolute z-0 h-full w-full scale-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition"></div>
-                <div className="z-10 flex items-center justify-center gap-2 whitespace-nowrap">
-                  Yes, delete!
-                </div>
-              </button>
-            </div>
-          </div>
+        <DeleteModal
+          setOffers={setOffers}
+          setShowModal={setShowModal}
+          shoModal={shoModal}
+          setNotice={setNotice}
+        />
+      )}
+      {notice && (
+        <div className="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded shadow-lg z-[999] transition">
+          {notice}
         </div>
       )}
     </div>
