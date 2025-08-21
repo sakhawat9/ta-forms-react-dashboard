@@ -3,10 +3,41 @@ import moment from "moment";
 import OfferDetail from "./OfferDetails";
 
 const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
-  const [showDetails, setShowDetails] = useState(false);
-  const [showAllMeta, setShowAllMeta] = useState(false);
   const field = offer?.field;
   const metaInfo = offer?.meta;
+
+  const offer_resend_key = `offer-resend-${offer.id}`;
+
+  // Load timer state from localStorage
+  const getInitialResendState = () => {
+    const saved = localStorage.getItem(offer_resend_key);
+    if (saved) {
+      try {
+        const { time, resendActive, updatedAt } = JSON.parse(saved);
+        const elapsed = Math.floor((Date.now() - updatedAt) / 1000);
+        const remaining = Math.max(time - elapsed, 0);
+        return {
+          time: remaining,
+          resendActive: remaining === 0 ? true : resendActive,
+        };
+      } catch {
+        return { time: 0, resendActive: true };
+      }
+    }
+    return { time: 0, resendActive: true };
+  };
+
+  const initial = getInitialResendState();
+  const [time, setTime] = useState(initial.time);
+  const [resendActive, setResendActive] = useState(initial.resendActive);
+  console.log('resendActive', resendActive);
+  
+  const [showDetails, setShowDetails] = useState(false);
+  const [showAllMeta, setShowAllMeta] = useState(false);
+
+  const siteUrl = window.location.origin;
+  const adminUrl = `${siteUrl}/wp-admin/admin.php`;
+  const resendUrl = `${adminUrl}?page=ta-forms&action=resend_verification&offer_id=${offer.id}`;
 
   const displayTime = moment(offer.created_at).calendar(null, {
     sameDay: "[Today at] h:mm A",
@@ -14,27 +45,6 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
     lastWeek: "dddd [at] h:mm A",
     sameElse: "MMM D, YYYY [at] h:mm A",
   });
-
-  const siteUrl = window.location.origin;
-  const adminUrl = `${siteUrl}/wp-admin/admin.php`;
-  const resendUrl = `${adminUrl}?page=ta-forms&action=resend_verification&offer_id=${offer.id}`;
-
-  const [time, setTime] = useState(0);
-  const [resendActive, setResendActive] = useState(true);  
-
-  // Load saved timer from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem(`resendTimer_${offer.id}`);
-    if (saved) {
-      const { expireAt } = JSON.parse(saved);
-      const now = Math.floor(Date.now() / 1000);
-
-      if (expireAt > now) {
-        setResendActive(false);
-        setTime(expireAt - now);
-      }
-    }
-  }, [offer.id]);
 
   const handleResend = (e) => {
     e.stopPropagation();
@@ -47,13 +57,14 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
       })
       .then(() => {
         setResendActive(false);
-        setTime(300); // 5 minutes
-
-        // Save expiry time in localStorage
-        const expireAt = Math.floor(Date.now() / 1000) + 300;
+        setTime(20); // 5 minutes
         localStorage.setItem(
-          `resendTimer_${offer.id}`,
-          JSON.stringify({ expireAt })
+          offer_resend_key,
+          JSON.stringify({
+            time: 20,
+            resendActive: false,
+            updatedAt: Date.now(),
+          })
         );
       })
       .catch((err) => {
@@ -61,29 +72,52 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
       });
   };
 
-  // Countdown effect
   useEffect(() => {
     let timer;
     if (!resendActive && time > 0) {
       timer = setInterval(() => {
         setTime((prev) => {
-          if (prev === 1) {
+          const next = prev - 1;
+          localStorage.setItem(
+            offer_resend_key,
+            JSON.stringify({
+              time: next,
+              resendActive: next === 0 ? true : false,
+              updatedAt: Date.now(),
+            })
+          );
+          if (next === 0) {
             setResendActive(true);
-            localStorage.removeItem(`resendTimer_${offer.id}`);
+            localStorage.removeItem(offer_resend_key);
+            setTime(0);
             clearInterval(timer);
-            return 0;
           }
-          return prev - 1;
+          return next;
         });
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [resendActive, time, offer.id]);
+  }, [resendActive, time]);
+
+
+  useEffect(() => {
+  const handleStorageChange = (e) => {
+    if (e.key === offer_resend_key && e.newValue === null) {
+      // ✅ The key was removed (e.g. after delete)
+      setResendActive(true);
+      setTime(0);
+    }
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
+}, [offer_resend_key]);
 
   return (
     <>
       <div
         className="flex flex-col w-full h-full border border-slate-100 border-t-0 divide-y divide-slate-100 transition-all overflow-hidden w-[800px] sm:w-full"
+        locked="false"
         key={index}
       >
         <div
@@ -123,8 +157,8 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
                   ) : (
                     <>
                       You can resend again within -{" "}
-                      {`${Math.floor(time / 60)}`.padStart(2, "0")}:
-                      {`${time % 60}`.padStart(2, "0")}
+                      {`${Math.floor(time / 60)}`.padStart(2, 0)}:
+                      {`${time % 60}`.padStart(2, 0)}
                     </>
                   )}
                 </span>

@@ -22,6 +22,9 @@ const DeleteModal = ({
             },
           });
           if (!res.ok) throw new Error(`Failed to delete offer ${id}`);
+
+          // ✅ Clear resend state
+          localStorage.removeItem(`offer-resend-${id}`);
         })
       );
 

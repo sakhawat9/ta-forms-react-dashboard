@@ -240,10 +240,10 @@ function App() {
               </div>
               <div className="w-[150px] min-w-[150px]">Action</div>
             </div>
-            {paginatedOffers.map((offer, index) => (
+            {paginatedOffers.map((offer) => (
               <Offer
                 offer={offer}
-                key={index}
+                key={offer.id}
                 setShowModal={setShowModal}
                 selected={selectedOffers.includes(offer.id)}
                 toggleSelectOffer={toggleSelectOffer}
