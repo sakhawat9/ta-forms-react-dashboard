@@ -54,6 +54,7 @@ function App() {
     key: "created_at",
     direction: "asc",
   });
+  
 
   useEffect(() => {
     fetch("http://forms.local/wp-json/ta-forms/v1/offers")
@@ -265,11 +266,16 @@ function App() {
                   onClick={() => handleSort("field.ta_forms_full_name")}
                   className="flex items-center gap-2 cursor-pointer"
                 >
-                  Offer
+                  Name
                   <div className="inline-flex items-center justify-center text-slate-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="fill-current w-4 h-4 transition duration-300"
+                      className={`fill-current w-4 h-4 transition duration-300 ${
+                        sortConfig.key === "field.ta_forms_full_name" &&
+                        sortConfig.direction === "desc"
+                          ? "rotate-180"
+                          : ""
+                      }`}
                       viewBox="0 0 16 16"
                     >
                       <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
@@ -282,11 +288,16 @@ function App() {
                   onClick={() => handleSort("field.ta_forms_email")}
                   className="flex items-center gap-2 cursor-pointer"
                 >
-                  Offer
+                  Email
                   <div className="inline-flex items-center justify-center text-slate-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="fill-current w-4 h-4 transition duration-300"
+                      className={`fill-current w-4 h-4 transition duration-300 ${
+                        sortConfig.key === "field.ta_forms_email" &&
+                        sortConfig.direction === "desc"
+                          ? "rotate-180"
+                          : ""
+                      }`}
                       viewBox="0 0 16 16"
                     >
                       <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
@@ -304,7 +315,12 @@ function App() {
                   <div className="inline-flex items-center justify-center text-slate-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="fill-current w-4 h-4 transition duration-300"
+                      className={`fill-current w-4 h-4 transition duration-300 ${
+                        sortConfig.key === "field.ta_forms_proposal" &&
+                        sortConfig.direction === "desc"
+                          ? "rotate-180"
+                          : ""
+                      }`}
                       viewBox="0 0 16 16"
                     >
                       <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
@@ -321,7 +337,12 @@ function App() {
                   <div className="inline-flex items-center justify-center text-slate-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="fill-current w-4 h-4 transition duration-300"
+                      className={`fill-current w-4 h-4 transition duration-300 ${
+                        sortConfig.key === "field.ta_forms_offer" &&
+                        sortConfig.direction === "desc"
+                          ? "rotate-180"
+                          : ""
+                      }`}
                       viewBox="0 0 16 16"
                     >
                       <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
@@ -338,7 +359,12 @@ function App() {
                   <div className="inline-flex items-center justify-center cursor-pointer text-slate-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="fill-current w-4 h-4 transition duration-300"
+                      className={`fill-current w-4 h-4 transition duration-300 ${
+                        sortConfig.key === "created_at" &&
+                        sortConfig.direction === "desc"
+                          ? "rotate-180"
+                          : ""
+                      }`}
                       viewBox="0 0 16 16"
                     >
                       <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>

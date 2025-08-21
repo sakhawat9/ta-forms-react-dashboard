@@ -30,7 +30,6 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
   const initial = getInitialResendState();
   const [time, setTime] = useState(initial.time);
   const [resendActive, setResendActive] = useState(initial.resendActive);
-  console.log('resendActive', resendActive);
   
   const [showDetails, setShowDetails] = useState(false);
   const [showAllMeta, setShowAllMeta] = useState(false);
