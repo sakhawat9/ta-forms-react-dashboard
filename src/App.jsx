@@ -50,6 +50,8 @@ function App() {
   const [dateTo, setDateTo] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [selectedOffers, setSelectedOffers] = useState([]);
+
   useEffect(() => {
     fetch("http://forms.local/wp-json/ta-forms/v1/offers")
       .then((res) => res.json())
@@ -120,6 +122,22 @@ function App() {
     return true;
   });
 
+  const toggleSelectOffer = (id) => {
+    setSelectedOffers((prev) =>
+      prev.includes(id)
+        ? prev.filter((offerId) => offerId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOffers.length === paginatedOffers.length) {
+      setSelectedOffers([]);
+    } else {
+      setSelectedOffers(paginatedOffers.map((offer) => offer.id));
+    }
+  };
+
   const totalPages =
     perPage === "all" ? 1 : Math.ceil(filteredOffers.length / perPage);
 
@@ -136,9 +154,28 @@ function App() {
       <div className="bg-white p-2 sm:p-6 w-full h-full flex flex-col gap-3 sm:gap-5">
         <div className="flex items-center justify-between gap-2 h-10 w-full">
           <h3 className="font-semibold text-base whitespace-nowrap">
-            Contact Form Leads
+            Contact Form Offers
           </h3>
           <div className="flex items-center :justify-end gap-3 justify-between child:justify-center child:px-3 sm:child:px-6">
+            {/* All Offers Delete */}
+            {selectedOffers.length > 0 && (
+              <button
+                // onClick={() => setShowModal(true)}
+                className="relative group px-6 h-10 flex items-center gap-2 border rounded transition focus:ring-0 active:grayscale-100 active:opacity-95 overflow-hidden bg-transparent text-red-600 border-red-600 hover:bg-red-600 hover:text-white text-base"
+              >
+                <div className="bg-transparent text-red-600 border-red-600 hover:bg-red-600 hover:text-white duration-300 absolute z-0 h-full w-full scale-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition"></div>
+                <div className="z-10 flex items-center justify-center gap-2 whitespace-nowrap">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="fill-current w-4"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"></path>
+                  </svg>{" "}
+                  {selectedOffers.length}
+                </div>
+              </button>
+            )}
             <button
               onClick={exportToCSV}
               className="relative group px-6 h-10 flex items-center gap-2 border rounded transition focus:ring-0 active:grayscale-100 active:opacity-95 overflow-hidden bg-transparent text-indigo-600 border-indigo-600 hover:bg-indigo-600 hover:text-white"
@@ -173,7 +210,14 @@ function App() {
           <div className="overflow-x-scroll h-full sm:overflow-visible">
             <div className="flex sm:sticky sm:top-7 items-center child:py-2 bg-indigo-100 child:px-5 child:font-semibold w-[800px] sm:w-full h-full">
               <div className="w-16">
-                <input type="checkbox" className="bg-transparent" />
+                <input
+                  type="checkbox"
+                  checked={
+                    paginatedOffers.length > 0 &&
+                    selectedOffers.length === paginatedOffers.length
+                  }
+                  onChange={toggleSelectAll}
+                />
               </div>
               <div className="w-[220px] min-w-[220px] capitalize">name</div>
               <div className="w-[250px] min-w-[250px] capitalize">email</div>
@@ -197,7 +241,13 @@ function App() {
               <div className="w-[150px] min-w-[150px]">Action</div>
             </div>
             {paginatedOffers.map((offer, index) => (
-              <Offer offer={offer} key={index} setShowModal={setShowModal} />
+              <Offer
+                offer={offer}
+                key={index}
+                setShowModal={setShowModal}
+                selected={selectedOffers.includes(offer.id)}
+                toggleSelectOffer={toggleSelectOffer}
+              />
             ))}
           </div>
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import moment from "moment";
 import OfferDetail from "./OfferDetails";
 
-const Offer = ({ offer, index, setShowModal }) => {
+const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showAllMeta, setShowAllMeta] = useState(false);
   const field = offer?.field;
@@ -27,11 +27,22 @@ const Offer = ({ offer, index, setShowModal }) => {
         key={index}
       >
         <div
-          onClick={() => setShowDetails((prev) => !prev)}
+          onClick={(e) => {
+            if (e.target.type !== "checkbox") {
+              setShowDetails((prev) => !prev);
+            }
+          }}
           className="w-full flex items-center child:py-2.5 child:px-5 last-child:text-right cursor-pointer hover:bg-gray-50 transition-all"
         >
           <div className="w-16 no-details">
-            <input type="checkbox" className="bg-transparent" />
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={(e) => {
+                e.stopPropagation();
+                toggleSelectOffer(offer.id);
+              }}
+            />
           </div>
           <div className="w-[220px] min-w-[220px] break-words">
             {field.ta_forms_full_name}
@@ -105,14 +116,16 @@ const Offer = ({ offer, index, setShowModal }) => {
                 className="no-details active:bg-red-400 h-8 w-8 flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition cursor-pointer"
               >
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
                   className="bi bi-trash3-fill"
-                  viewBox="0 0 16 16"
+                  stroke="currentColor"
+                  fill="currentColor"
+                  strokeWidth="0"
+                  viewBox="0 0 24 24"
+                  height="1.2em"
+                  width="1.2em"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"></path>
+                  <path d="M4 8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8ZM6 10V20H18V10H6ZM9 12H11V18H9V12ZM13 12H15V18H13V12ZM7 5V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V5H22V7H2V5H7ZM9 4V5H15V4H9Z"></path>
                 </svg>
               </button>
             </div>

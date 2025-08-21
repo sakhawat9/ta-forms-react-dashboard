@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 const metaFields = [
   { label: "Device", key: "device" },
   { label: "Browser", key: "browser" },
@@ -25,25 +25,85 @@ const metaFields = [
   { label: "User_Email", key: "wp_email" },
 ];
 
-const OfferDetail = ({ showAllMeta, setShowAllMeta, showDetails, metaInfo, field }) => {
+const OfferDetail = ({
+  showAllMeta,
+  setShowAllMeta,
+  showDetails,
+  metaInfo,
+  field,
+}) => {
   const metaToShow = showAllMeta ? metaFields : metaFields.slice(0, 7);
+  const [copiedForm, setCopiedForm] = useState("");
+  const [copiedOthers, setCopiedOthers] = useState("");
+  const copyToClipboard = (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      return new Promise((resolve, reject) => {
+        try {
+          document.execCommand("copy");
+          resolve();
+        } catch (err) {
+          reject(err);
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      });
+    }
+  };
+
+  const copyFormData = () => {
+    const text = `
+Name: ${field.ta_forms_full_name}
+Email: ${field.ta_forms_email}
+Phone: ${field.ta_forms_phone}
+Message: ${field.ta_forms_proposal}
+  `.trim();
+
+    copyToClipboard(text).then(() => {
+      setCopiedForm("✅ Copied!");
+      setTimeout(() => setCopiedForm(""), 1000);
+    });
+  };
+
+  const copyMetaData = () => {
+    const text = metaFields
+      .map((item) => `${item.label}: ${metaInfo[item.key] || ""}`)
+      .join("\n");
+
+    copyToClipboard(text).then(() => {
+      setCopiedOthers("✅ Copied!");
+      setTimeout(() => setCopiedOthers(""), 1000);
+    });
+  };
 
   return (
     <>
       {showDetails && (
         <div className="grid gap-5 grid-cols-1 md:grid-cols-2 child:h-full">
           <div className="p-5 md:p-6 w-full flex flex-col gap-4 pr-0">
-            <h2 className="text-slate-500 font-medium m-0">Form Submitted data</h2>
+            <h2 className="text-slate-500 font-medium m-0">
+              Form Submitted data
+            </h2>
             <div className="bg-slate-50 py-5 px-6 h-full rounded border border-slate-100 relative">
-              <span className="absolute right-4 top-4 flex items-center gap-2 cursor-pointer transition text-slate-400 hover:text-slate-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="fill-current w-5"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"></path>
-                  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm4.5 6V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5a.5.5 0 0 1 1 0"></path>
-                </svg>
+              <span
+                onClick={copyFormData}
+                className="absolute right-4 top-4 flex items-center gap-2 cursor-pointer transition text-slate-400 hover:text-slate-700"
+              >
+                <svg className="text-xl" stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
+                {copiedForm && (
+                  <div className="absolute px-2 py-1 rounded shadow-lg z-[999] transition right-7 -top-1 w-[84px] text-green-600">
+                    {copiedForm}
+                  </div>
+                )}
               </span>
               <div className="flex gap-4 w-full items-start mb-2 last:mb-0 text-[14px] 24 font-normal text-gray-400">
                 <span className="capitalize whitespace-nowrap w-32 text-right">
@@ -88,17 +148,20 @@ const OfferDetail = ({ showAllMeta, setShowAllMeta, showDetails, metaInfo, field
             </div>
           </div>
           <div className="p-5 md:p-6 w-full flex flex-col gap-4 pl-0">
-            <h2 className="text-slate-500 font-medium m-0">Others Information</h2>
+            <h2 className="text-slate-500 font-medium m-0">
+              Others Information
+            </h2>
             <div className="bg-slate-50 p-6 rounded h-full border border-slate-100 relative">
-              <span className="absolute right-12 top-4 flex items-center gap-2 cursor-pointer transition text-slate-400 hover:text-slate-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="fill-current w-5"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"></path>
-                  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm4.5 6V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5a.5.5 0 0 1 1 0"></path>
-                </svg>
+              <span
+                onClick={copyMetaData}
+                className="absolute right-4 top-4 flex items-center gap-2 cursor-pointer transition text-slate-400 hover:text-slate-700"
+              >
+                <svg className="text-xl" stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
+                {copiedOthers && (
+                  <div className="absolute px-2 py-1 rounded shadow-lg z-[999] transition right-7 -top-1 w-[84px] text-green-600">
+                    {copiedOthers}
+                  </div>
+                )}
               </span>
               {metaToShow.map((item) => (
                 <div
@@ -112,7 +175,7 @@ const OfferDetail = ({ showAllMeta, setShowAllMeta, showDetails, metaInfo, field
                   <span className="w-full text-gray-700 tracking-wide flex items-center gap-3 flex-wrap [&>img]:w-auto [&>img]:h-5 [&>img]:rounded">
                     {metaInfo[item.key]}
                     {item.label === "Country" && (
-                        <img src={metaInfo[item.flag]} alt={metaInfo[item.key]} />
+                      <img src={metaInfo[item.flag]} alt={metaInfo[item.key]} />
                     )}
                   </span>
                 </div>
