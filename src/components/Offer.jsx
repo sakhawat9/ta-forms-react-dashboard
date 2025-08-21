@@ -48,6 +48,7 @@ const Offer = ({ offer, index, setShowModal }) => {
                   <a
                     href={`${resendUrl}`}
                     onClick={(e) => {
+                      e.stopPropagation();
                       e.preventDefault();
                       fetch(resendUrl, { method: "POST" })
                         .then((res) => res.json())

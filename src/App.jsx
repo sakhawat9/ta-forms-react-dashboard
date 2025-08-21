@@ -3,6 +3,7 @@ import "./App.css";
 import Offer from "./components/Offer";
 import DeleteModal from "./components/DeleteModal";
 import Pagination from "./components/Pagination";
+import FilterOptions from "./components/FilterOptions";
 
 const columns = [
   { label: "ID", key: "id" },
@@ -11,7 +12,6 @@ const columns = [
   { label: "Email", key: "field.ta_forms_email" },
   { label: "Phone", key: "field.ta_forms_phone" },
   { label: "Proposal", key: "field.ta_forms_proposal" },
-
   { label: "Device", key: "meta.device" },
   { label: "Browser", key: "meta.browser" },
   { label: "Platform", key: "meta.platform" },
@@ -32,7 +32,6 @@ const columns = [
   { label: "Longitude", key: "meta.longitude" },
   { label: "ISP", key: "meta.isp" },
   { label: "Organizer", key: "meta.org" },
-
   { label: "WP User ID", key: "meta.wp_user_id" },
   { label: "WP Username", key: "meta.wp_username" },
   { label: "WP First Name", key: "meta.wp_first_name" },
@@ -44,9 +43,12 @@ function App() {
   const [offers, setOffers] = useState([]);
   const [shoModal, setShowModal] = useState(null);
   const [notice, setNotice] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
+  const [emailFilter, setEmailFilter] = useState("all-email");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetch("http://forms.local/wp-json/ta-forms/v1/offers")
@@ -90,14 +92,44 @@ function App() {
     document.body.removeChild(link);
   };
 
-  // ✅ Total pages
-  const totalPages = perPage === "all" ? 1 : Math.ceil(offers.length / perPage);
+  const filteredOffers = offers.filter((offer) => {
+    // ✅ Email filter
+    if (emailFilter !== "all-email" && offer.verify_status !== emailFilter) {
+      return false;
+    }
 
-  // ✅ Paginated offers
+    // ✅ Date filter (compare with created_at)
+    if (dateFrom && new Date(offer.created_at) < new Date(dateFrom)) {
+      return false;
+    }
+    if (dateTo && new Date(offer.created_at) > new Date(dateTo)) {
+      return false;
+    }
+
+    // ✅ Search filter (name, email, phone, proposal)
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const haystack =
+        `${offer.field.ta_forms_full_name} ${offer.field.ta_forms_email} ${offer.field.ta_forms_phone} ${offer.field.ta_forms_proposal}`.toLowerCase();
+
+      if (!haystack.includes(q)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const totalPages =
+    perPage === "all" ? 1 : Math.ceil(filteredOffers.length / perPage);
+
   const paginatedOffers =
     perPage === "all"
-      ? offers
-      : offers.slice((currentPage - 1) * perPage, currentPage * perPage);
+      ? filteredOffers
+      : filteredOffers.slice(
+          (currentPage - 1) * perPage,
+          currentPage * perPage
+        );
 
   return (
     <div className="w-full p-3 sm:p-6 h-full !pl-0">
@@ -127,7 +159,16 @@ function App() {
             </button>
           </div>
         </div>
-
+        <FilterOptions
+          emailFilter={emailFilter}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          searchQuery={searchQuery}
+          setDateFrom={setDateFrom}
+          setEmailFilter={setEmailFilter}
+          setDateTo={setDateTo}
+          setSearchQuery={setSearchQuery}
+        />
         <div className="flex flex-col gap-6 h-full">
           <div className="overflow-x-scroll h-full sm:overflow-visible">
             <div className="flex sm:sticky sm:top-7 items-center child:py-2 bg-indigo-100 child:px-5 child:font-semibold w-[800px] sm:w-full h-full">
