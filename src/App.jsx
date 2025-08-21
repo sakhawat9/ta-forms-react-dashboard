@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import Offer from "./components/Offer";
 import DeleteModal from "./components/DeleteModal";
@@ -49,8 +49,11 @@ function App() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-
   const [selectedOffers, setSelectedOffers] = useState([]);
+  const [sortConfig, setSortConfig] = useState({
+    key: "created_at",
+    direction: "asc",
+  });
 
   useEffect(() => {
     fetch("http://forms.local/wp-json/ta-forms/v1/offers")
@@ -141,13 +144,51 @@ function App() {
   const totalPages =
     perPage === "all" ? 1 : Math.ceil(filteredOffers.length / perPage);
 
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedOffers = useMemo(() => {
+    const sorted = [...filteredOffers];
+
+    sorted.sort((a, b) => {
+      const getValue = (obj, path) =>
+        path.split(".").reduce((acc, part) => acc?.[part], obj);
+
+      const valueA = getValue(a, sortConfig.key);
+      const valueB = getValue(b, sortConfig.key);
+
+      let result = 0;
+
+      // Handle sorting by date
+      if (sortConfig.key === "created_at") {
+        const dateA = new Date(valueA);
+        const dateB = new Date(valueB);
+        result = dateA - dateB;
+      }
+      // Handle numeric comparison
+      else if (!isNaN(parseFloat(valueA)) && !isNaN(parseFloat(valueB))) {
+        result = parseFloat(valueA) - parseFloat(valueB);
+      }
+      // Handle string comparison
+      else {
+        result = String(valueA).localeCompare(String(valueB));
+      }
+
+      return sortConfig.direction === "asc" ? result : -result;
+    });
+
+    return sorted;
+  }, [filteredOffers, sortConfig]);
+
   const paginatedOffers =
     perPage === "all"
-      ? filteredOffers
-      : filteredOffers.slice(
-          (currentPage - 1) * perPage,
-          currentPage * perPage
-        );
+      ? sortedOffers
+      : sortedOffers.slice((currentPage - 1) * perPage, currentPage * perPage);
 
   return (
     <div className="w-full p-3 sm:p-6 h-full !pl-0">
@@ -219,13 +260,80 @@ function App() {
                   onChange={toggleSelectAll}
                 />
               </div>
-              <div className="w-[220px] min-w-[220px] capitalize">name</div>
-              <div className="w-[250px] min-w-[250px] capitalize">email</div>
+              <div className="w-[220px] min-w-[220px] capitalize">
+                <div
+                  onClick={() => handleSort("field.ta_forms_full_name")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  Offer
+                  <div className="inline-flex items-center justify-center text-slate-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="fill-current w-4 h-4 transition duration-300"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className="w-[250px] min-w-[250px] capitalize">
+                <div
+                  onClick={() => handleSort("field.ta_forms_email")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  Offer
+                  <div className="inline-flex items-center justify-center text-slate-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="fill-current w-4 h-4 transition duration-300"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
               <div className="w-[150px] min-w-[150px] capitalize">phone</div>
-              <div className="w-full capitalize">message</div>
-              <div className="w-[100px] min-w-[100px] capitalize">Offer</div>
+              <div className="w-full capitalize">
+                <div
+                  onClick={() => handleSort("field.ta_forms_proposal")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  Message
+                  <div className="inline-flex items-center justify-center text-slate-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="fill-current w-4 h-4 transition duration-300"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className="w-[100px] min-w-[100px] capitalize">
+                <div
+                  onClick={() => handleSort("field.ta_forms_offer")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  Offer
+                  <div className="inline-flex items-center justify-center text-slate-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="fill-current w-4 h-4 transition duration-300"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
               <div className="w-[200px] min-w-[200px]">
-                <div className="flex items-center gap-2">
+                <div
+                  onClick={() => handleSort("created_at")}
+                  className="flex items-center gap-2"
+                >
                   Date{" "}
                   <div className="inline-flex items-center justify-center cursor-pointer text-slate-600">
                     <svg
