@@ -135,24 +135,10 @@ function App() {
     );
   };
 
-  const toggleSelectAll = () => {
-    if (selectedOffers.length === paginatedOffers.length) {
-      setSelectedOffers([]);
-    } else {
-      setSelectedOffers(paginatedOffers.map((offer) => offer.id));
-    }
-  };
+
 
   const totalPages =
     perPage === "all" ? 1 : Math.ceil(filteredOffers.length / perPage);
-
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
 
   const sortedOffers = useMemo(() => {
     const sorted = [...filteredOffers];
@@ -251,7 +237,7 @@ function App() {
         />
         <div className="flex flex-col gap-6 h-full">
           <div className="overflow-x-scroll h-full sm:overflow-visible">
-            <Header paginatedOffers={paginatedOffers} selectedOffers={selectedOffers} toggleSelectAll={toggleSelectAll} handleSort={handleSort} sortConfig={sortConfig} />
+            <Header paginatedOffers={paginatedOffers} selectedOffers={selectedOffers} setSelectedOffers={setSelectedOffers} setSortConfig={setSortConfig} sortConfig={sortConfig} />
             {paginatedOffers.map((offer) => (
               <Offer
                 offer={offer}

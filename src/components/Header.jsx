@@ -1,6 +1,28 @@
 import React from "react";
 
-const Header = ({paginatedOffers, selectedOffers, toggleSelectAll, handleSort, sortConfig}) => {
+const Header = ({
+  paginatedOffers,
+  selectedOffers,
+  setSelectedOffers,
+  setSortConfig,
+  sortConfig,
+}) => {
+  const toggleSelectAll = () => {
+    if (selectedOffers.length === paginatedOffers.length) {
+      setSelectedOffers([]);
+    } else {
+      setSelectedOffers(paginatedOffers.map((offer) => offer.id));
+    }
+  };
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
   return (
     <div className="flex sm:sticky sm:top-7 items-center child:py-2 bg-indigo-100 child:px-5 child:font-semibold w-[800px] sm:w-full h-full">
       <div className="w-16">
