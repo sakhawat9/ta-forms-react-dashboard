@@ -15,7 +15,7 @@ const FilterOptions = ({
       <div className="flex items-center gap-2 flex-col sm:flex-row">
         <div className="relative outline-none w-48" tabIndex="0">
           <select
-            className="w-48 h-11 border rounded"
+            className="w-48 h-10 border border-slate-200 rounded px-3.5"
             name="email-typ"
             value={emailFilter}
             onChange={(e) => setEmailFilter(e.target.value)}
