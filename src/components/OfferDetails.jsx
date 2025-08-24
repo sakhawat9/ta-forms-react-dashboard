@@ -30,8 +30,10 @@ const OfferDetail = ({
   setShowAllMeta,
   showDetails,
   metaInfo,
-  field,
+  fields,
 }) => {
+  console.log(fields);
+
   const metaToShow = showAllMeta ? metaFields : metaFields.slice(0, 7);
   const [copiedForm, setCopiedForm] = useState("");
   const [copiedOthers, setCopiedOthers] = useState("");
@@ -60,13 +62,24 @@ const OfferDetail = ({
     }
   };
 
+  const formatKey = (key) => {
+    console.log(key);
+
+    return key
+      .replace(/^ta_forms_/, "")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   const copyFormData = () => {
-    const text = `
-Name: ${field.ta_forms_full_name}
-Email: ${field.ta_forms_email}
-Phone: ${field.ta_forms_phone}
-Message: ${field.ta_forms_proposal}
-  `.trim();
+    if (!fields) return;
+
+    // Convert object into a list of "Label: Value"
+    const text = fields
+      .map(([key, value]) => {
+        return `${formatKey(key)}: ${value}`;
+      })
+      .join("\n"); // each field in a new line
 
     copyToClipboard(text).then(() => {
       setCopiedForm("✅ Copied!");
@@ -98,53 +111,40 @@ Message: ${field.ta_forms_proposal}
                 onClick={copyFormData}
                 className="absolute right-4 top-4 flex items-center gap-2 cursor-pointer transition text-slate-400 hover:text-slate-700"
               >
-                <svg className="text-xl" stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
+                <svg
+                  className="text-xl"
+                  stroke="currentColor"
+                  fill="currentColor"
+                  strokeWidth="0"
+                  viewBox="0 0 24 24"
+                  height="1em"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path fill="none" d="M0 0h24v24H0z"></path>
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path>
+                </svg>
                 {copiedForm && (
                   <div className="absolute px-2 py-1 rounded shadow-lg z-[999] transition right-7 -top-1 w-[84px] text-green-600">
                     {copiedForm}
                   </div>
                 )}
               </span>
-              <div className="flex gap-4 w-full items-start mb-2 last:mb-0 text-[14px] 24 font-normal text-gray-400">
-                <span className="capitalize whitespace-nowrap w-32 text-right">
-                  name
-                </span>
-                :
-                <span className="w-full text-gray-700 [&>a]:text-indigo-500 [&>a]:ring-0 [&>a]:hover:text-indigo-600 [&>a]:hover:underline [&>a]:transition-all [&>a]:cursor-pointer">
-                  <span>{field.ta_forms_full_name}</span>
-                </span>
-              </div>
-              <div className="flex gap-4 w-full items-start mb-2 last:mb-0 text-[14px] 24 font-normal text-gray-400">
-                <span className="capitalize whitespace-nowrap w-32 text-right">
-                  email
-                </span>
-                :
-                <span className="w-full text-gray-700 [&>a]:text-indigo-500 [&>a]:ring-0 [&>a]:hover:text-indigo-600 [&>a]:hover:underline [&>a]:transition-all [&>a]:cursor-pointer">
-                  <a href={`mailto:${field.ta_forms_email}`}>
-                    {field.ta_forms_email}
-                  </a>
-                </span>
-              </div>
-              <div className="flex gap-4 w-full items-start mb-2 last:mb-0 text-[14px] 24 font-normal text-gray-400">
-                <span className="capitalize whitespace-nowrap w-32 text-right">
-                  phone
-                </span>
-                :
-                <span className="w-full text-gray-700 [&>a]:text-indigo-500 [&>a]:ring-0 [&>a]:hover:text-indigo-600 [&>a]:hover:underline [&>a]:transition-all [&>a]:cursor-pointer">
-                  <a tel="435634563456" href="tel:435634563456">
-                    {field.ta_forms_phone}
-                  </a>
-                </span>
-              </div>
-              <div className="flex gap-4 w-full items-start mb-2 last:mb-0 text-[14px] 24 font-normal text-gray-400">
-                <span className="capitalize whitespace-nowrap w-32 text-right">
-                  message
-                </span>
-                :
-                <span className="w-full text-gray-700 [&>a]:text-indigo-500 [&>a]:ring-0 [&>a]:hover:text-indigo-600 [&>a]:hover:underline [&>a]:transition-all [&>a]:cursor-pointer">
-                  <span>{field.ta_forms_proposal}</span>
-                </span>
-              </div>
+
+              {fields.map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex gap-4 w-full items-start mb-2 last:mb-0 text-[14px] 24 font-normal text-gray-400"
+                >
+                  <span className="capitalize whitespace-nowrap w-32 text-right">
+                    {formatKey(key)}
+                  </span>
+                  :
+                  <span className="w-full text-gray-700 [&>a]:text-indigo-500 [&>a]:ring-0 [&>a]:hover:text-indigo-600 [&>a]:hover:underline [&>a]:transition-all [&>a]:cursor-pointer">
+                    <span>{value}</span>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
           <div className="p-5 md:p-6 w-full flex flex-col gap-4 pl-0">
@@ -156,7 +156,19 @@ Message: ${field.ta_forms_proposal}
                 onClick={copyMetaData}
                 className="absolute right-4 top-4 flex items-center gap-2 cursor-pointer transition text-slate-400 hover:text-slate-700"
               >
-                <svg className="text-xl" stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
+                <svg
+                  className="text-xl"
+                  stroke="currentColor"
+                  fill="currentColor"
+                  strokeWidth="0"
+                  viewBox="0 0 24 24"
+                  height="1em"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path fill="none" d="M0 0h24v24H0z"></path>
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path>
+                </svg>
                 {copiedOthers && (
                   <div className="absolute px-2 py-1 rounded shadow-lg z-[999] transition right-7 -top-1 w-[84px] text-green-600">
                     {copiedOthers}

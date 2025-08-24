@@ -45,7 +45,7 @@ function App() {
   const [shoModal, setShowModal] = useState(null);
   const [notice, setNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+  const [perPage, setPerPage] = useState(300);
   const [emailFilter, setEmailFilter] = useState("all-email");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -53,12 +53,12 @@ function App() {
   const [selectedOffers, setSelectedOffers] = useState([]);
   const [sortConfig, setSortConfig] = useState({
     key: "created_at",
-    direction: "asc",
+    direction: "desc",
   });
+  const myStrings = window.taFormsString || {};
   
-
   useEffect(() => {
-    fetch("http://forms.local/wp-json/ta-forms/v1/offers")
+    fetch(`${myStrings.site_url}/wp-json/ta-forms/v1/offers`)
       .then((res) => res.json())
       .then((data) => setOffers(data))
       .catch((err) => console.error(err));
@@ -135,8 +135,6 @@ function App() {
     );
   };
 
-
-
   const totalPages =
     perPage === "all" ? 1 : Math.ceil(filteredOffers.length / perPage);
 
@@ -167,7 +165,7 @@ function App() {
         result = String(valueA).localeCompare(String(valueB));
       }
 
-      return sortConfig.direction === "asc" ? result : -result;
+      return sortConfig.direction === "desc" ? result : -result;
     });
 
     return sorted;
@@ -183,7 +181,7 @@ function App() {
       <div className="bg-white p-2 sm:p-6 w-full h-full flex flex-col gap-3 sm:gap-5">
         <div className="flex items-center justify-between gap-2 h-10 w-full">
           <h3 className="font-semibold text-base whitespace-nowrap">
-            Contact Form Offers
+            {myStrings.contact_form_offers}
           </h3>
           <div className="flex items-center :justify-end gap-3 justify-between child:justify-center child:px-3 sm:child:px-6">
             {/* All Offers Delete */}
@@ -237,7 +235,14 @@ function App() {
         />
         <div className="flex flex-col gap-6 h-full">
           <div className="overflow-x-scroll h-full sm:overflow-visible">
-            <Header paginatedOffers={paginatedOffers} selectedOffers={selectedOffers} setSelectedOffers={setSelectedOffers} setSortConfig={setSortConfig} sortConfig={sortConfig} />
+            <Header
+              paginatedOffers={paginatedOffers}
+              selectedOffers={selectedOffers}
+              setSelectedOffers={setSelectedOffers}
+              setSortConfig={setSortConfig}
+              sortConfig={sortConfig}
+              offers={offers}
+            />
             {paginatedOffers.map((offer) => (
               <Offer
                 offer={offer}

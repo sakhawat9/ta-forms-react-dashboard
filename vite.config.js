@@ -12,7 +12,7 @@ export default defineConfig({
     cors: true,
   },
   build: {
-    outDir: "dist/assets",
+    outDir: "dist",
     rollupOptions: {
       output: {
         format: "iife", // ✅ always IIFE instead of ESM

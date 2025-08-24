@@ -3,8 +3,9 @@ import moment from "moment";
 import OfferDetail from "./OfferDetails";
 
 const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
-  const field = offer?.field;
+  const fields = offer?.field ? Object.entries(offer.field) : [];
   const metaInfo = offer?.meta;
+  // const myStrings = window.taFormsString || {};
 
   const offer_resend_key = `offer-resend-${offer.id}`;
 
@@ -30,7 +31,7 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
   const initial = getInitialResendState();
   const [time, setTime] = useState(initial.time);
   const [resendActive, setResendActive] = useState(initial.resendActive);
-  
+
   const [showDetails, setShowDetails] = useState(false);
   const [showAllMeta, setShowAllMeta] = useState(false);
 
@@ -56,11 +57,11 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
       })
       .then(() => {
         setResendActive(false);
-        setTime(20); // 5 minutes
+        setTime(300); // 5 minutes
         localStorage.setItem(
           offer_resend_key,
           JSON.stringify({
-            time: 20,
+            time: 300,
             resendActive: false,
             updatedAt: Date.now(),
           })
@@ -98,19 +99,18 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
     return () => clearInterval(timer);
   }, [resendActive, time]);
 
-
   useEffect(() => {
-  const handleStorageChange = (e) => {
-    if (e.key === offer_resend_key && e.newValue === null) {
-      // ✅ The key was removed (e.g. after delete)
-      setResendActive(true);
-      setTime(0);
-    }
-  };
+    const handleStorageChange = (e) => {
+      if (e.key === offer_resend_key && e.newValue === null) {
+        // ✅ The key was removed (e.g. after delete)
+        setResendActive(true);
+        setTime(0);
+      }
+    };
 
-  window.addEventListener("storage", handleStorageChange);
-  return () => window.removeEventListener("storage", handleStorageChange);
-}, [offer_resend_key]);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [offer_resend_key]);
 
   return (
     <>
@@ -137,39 +137,42 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
               }}
             />
           </div>
-          <div className="w-[220px] min-w-[220px] break-words">
-            {field.ta_forms_full_name}
-          </div>
-          <div className="w-[250px] min-w-[250px] break-words">
-            {field.ta_forms_email}
-            {(offer.verify_status === "verified" && (
-              <span className="text-green-600 text-xs"> Verified</span>
-            )) ||
-              (offer.verify_status === "pending" && (
-                <span className="text-yellow-600 text-xs">
-                  {" "}
-                  Pending Verification -{" "}
-                  {resendActive ? (
-                    <a href={resendUrl} onClick={handleResend}>
-                      Resend
-                    </a>
-                  ) : (
-                    <>
-                      You can resend again within -{" "}
-                      {`${Math.floor(time / 60)}`.padStart(2, 0)}:
-                      {`${time % 60}`.padStart(2, 0)}
-                    </>
-                  )}
-                </span>
-              ))}
-          </div>
-          <div className="w-[150px] min-w-[150px] break-words">
-            {field.ta_forms_phone}
-          </div>
-          <div className="w-full break-words">{field.ta_forms_proposal}</div>
-          <div className="w-[100px] min-w-[100px] break-words">
-            {field.ta_forms_offer}
-          </div>
+          {fields.slice(0, 5).map(([key, value]) => (
+            <div
+              key={key}
+              className="w-full break-words"
+            >
+              <span>{value}</span>
+              {key === "ta_forms_email" && (
+                
+                  offer.verify_status === "verified" ? (
+                    <span className="text-green-600 text-xs">{" "}Verified</span>
+                  ) : offer.verify_status === "pending" ? (
+                    <span className="text-yellow-600 text-xs">
+                      {" "} Pending Verification -{" "}
+                      {resendActive ? (
+                        <a
+                          href={resendUrl}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleResend(e);
+                          }}
+                        >
+                          Resend
+                        </a>
+                      ) : (
+                        <>
+                          You can resend again within -{" "}
+                          {`${String(Math.floor(time / 60)).padStart(2, "0")}`}:
+                          {`${String(time % 60).padStart(2, "0")}`}
+                        </>
+                      )}
+                    </span>
+                  ) : null
+              )}
+            </div>
+          ))}
+
           <div className="w-[200px] min-w-[200px] white sm:whitespace-nowrap">
             {displayTime}
           </div>
@@ -224,7 +227,7 @@ const Offer = ({ offer, index, setShowModal, selected, toggleSelectOffer }) => {
           setShowAllMeta={setShowAllMeta}
           showDetails={showDetails}
           metaInfo={metaInfo}
-          field={field}
+          fields={fields}
         />
       </div>
     </>
